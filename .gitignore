@@ -1,0 +1,6 @@
+build/
+.flags/
+
+supported_c_compilers.txt
+CMakeLists.txt
+*.html

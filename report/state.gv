@@ -1,0 +1,44 @@
+digraph RemoteShellFSM {
+    rankdir=TB;
+    node [shape=box, style=filled, fillcolor=white];
+    
+    /* States */
+    START [shape=circle];
+    EXIT [shape=doublecircle];
+    USAGE;
+    INIT;
+    LISTENING;
+    FORK_CHILD;
+    
+    subgraph cluster_child_process {
+        label = "Child Process Loop";
+        style=dashed;
+        WAIT_CMD;
+        PROCESS_CMD;
+        SEND_RESP;
+    }
+    
+    CLEANUP;
+
+    /* Transitions */
+    START -> INIT [label="valid args"];
+    START -> USAGE [label="invalid args"];
+    USAGE -> EXIT;
+
+    INIT -> LISTENING [label="bind/listen success"];
+    INIT -> CLEANUP [label="setup fail"];
+
+    LISTENING -> FORK_CHILD [label="accept connection"];
+    FORK_CHILD -> LISTENING [label="parent returns"];
+    FORK_CHILD -> WAIT_CMD [label="child starts"];
+
+    WAIT_CMD -> PROCESS_CMD [label="receive command"];
+    WAIT_CMD -> CLEANUP [label="client disconnect"];
+
+    PROCESS_CMD -> SEND_RESP [label="execv output"];
+    PROCESS_CMD -> CLEANUP [label="cmd == 'exit'"];
+
+    SEND_RESP -> WAIT_CMD [label="waiting next cmd"];
+    
+    CLEANUP -> EXIT;
+}
